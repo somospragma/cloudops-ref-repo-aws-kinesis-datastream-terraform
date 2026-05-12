@@ -55,3 +55,29 @@ resource "aws_kinesis_stream" "this" {
     ignore_changes = []
   }
 }
+
+# -----------------------------------------------------------------------------
+# Kinesis Resource Policy - Cross-Account Access (Opcional)
+# -----------------------------------------------------------------------------
+resource "aws_kinesis_resource_policy" "this" {
+  provider = aws.project
+
+  for_each = local.resource_policies
+
+  resource_arn = aws_kinesis_stream.this[each.key].arn
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "CrossAccountAccess"
+        Effect = "Allow"
+        Principal = {
+          AWS = each.value.principals
+        }
+        Action   = each.value.actions
+        Resource = aws_kinesis_stream.this[each.key].arn
+      }
+    ]
+  })
+}

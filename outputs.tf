@@ -79,3 +79,14 @@ output "streams_summary" {
     }
   }
 }
+
+# -----------------------------------------------------------------------------
+# Outputs de Resource Policies (Cross-Account)
+# -----------------------------------------------------------------------------
+
+output "resource_policy_ids" {
+  description = "Mapa de IDs de las resource policies creadas, indexado por la clave del stream."
+  value = {
+    for key, policy in aws_kinesis_resource_policy.this : key => policy.id
+  }
+}

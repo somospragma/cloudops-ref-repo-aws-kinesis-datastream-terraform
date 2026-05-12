@@ -128,3 +128,25 @@ variable "streams_config" {
     error_message = "Las métricas de shard_level_metrics deben ser válidas: IncomingBytes, IncomingRecords, OutgoingBytes, OutgoingRecords, WriteProvisionedThroughputExceeded, ReadProvisionedThroughputExceeded, IteratorAgeMilliseconds."
   }
 }
+
+# -----------------------------------------------------------------------------
+# Variable de Resource Policies - Cross-Account Access (Opcional)
+# -----------------------------------------------------------------------------
+
+variable "resource_policies" {
+  description = <<-EOT
+    Mapa de configuración para Resource Policies de Kinesis (Cross-Account Access).
+    La clave del mapa debe coincidir con una clave de streams_config.
+    
+    Atributos:
+    - principals: (list) Lista de ARNs de roles/usuarios que pueden acceder al stream
+    - actions: (list) Lista de acciones permitidas. Default: ["kinesis:PutRecord", "kinesis:PutRecords", "kinesis:DescribeStream"]
+  EOT
+
+  type = map(object({
+    principals = list(string)
+    actions    = optional(list(string), ["kinesis:PutRecord", "kinesis:PutRecords", "kinesis:DescribeStream"])
+  }))
+
+  default = {}
+}

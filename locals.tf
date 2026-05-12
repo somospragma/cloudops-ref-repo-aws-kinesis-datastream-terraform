@@ -39,4 +39,14 @@ locals {
       )
     }
   }
+
+  # ---------------------------------------------------------------------------
+  # Resource Policies para Cross-Account Access (Opcional)
+  # ---------------------------------------------------------------------------
+  resource_policies = {
+    for key, config in var.resource_policies : key => {
+      principals = config.principals
+      actions    = config.actions
+    } if contains(keys(var.streams_config), key)
+  }
 }
