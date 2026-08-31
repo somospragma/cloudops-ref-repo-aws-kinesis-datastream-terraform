@@ -80,12 +80,13 @@ resource "aws_kinesis_resource_policy" "this" {
           Resource = aws_kinesis_stream.this[each.key].arn
         },
         length(stmt.conditions) > 0 ? {
-          Condition = {
-            for condition in stmt.conditions :
-            condition.test => {
-              (condition.variable) = condition.values
-            }...
-          }
+          Condition = merge([
+            for condition in stmt.conditions : {
+              (condition.test) = {
+                (condition.variable) = condition.values
+              }
+            }
+          ]...)
         } : {}
       )
     ]
