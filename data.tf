@@ -25,3 +25,35 @@ data "aws_region" "current" {
 data "aws_caller_identity" "current" {
   provider = aws.project
 }
+
+# -----------------------------------------------------------------------------
+# Policy documents para Resource Policies (igual patrón que módulo KMS)
+# -----------------------------------------------------------------------------
+data "aws_iam_policy_document" "resource_policy" {
+  provider = aws.project
+  for_each = local.resource_policies
+
+  dynamic "statement" {
+    for_each = each.value.statements
+    content {
+      sid       = statement.value["sid"]
+      effect    = statement.value["effect"]
+      actions   = statement.value["actions"]
+      resources = [aws_kinesis_stream.this[each.key].arn]
+
+      principals {
+        type        = statement.value["principals"]["type"]
+        identifiers = statement.value["principals"]["identifiers"]
+      }
+
+      dynamic "condition" {
+        for_each = statement.value["conditions"]
+        content {
+          test     = condition.value["test"]
+          variable = condition.value["variable"]
+          values   = condition.value["values"]
+        }
+      }
+    }
+  }
+}

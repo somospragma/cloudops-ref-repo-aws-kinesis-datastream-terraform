@@ -65,30 +65,5 @@ resource "aws_kinesis_resource_policy" "this" {
   for_each = local.resource_policies
 
   resource_arn = aws_kinesis_stream.this[each.key].arn
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      for stmt in each.value.statements : merge(
-        {
-          Sid    = stmt.sid
-          Effect = stmt.effect
-          Principal = {
-            (stmt.principals.type) = stmt.principals.identifiers
-          }
-          Action   = stmt.actions
-          Resource = aws_kinesis_stream.this[each.key].arn
-        },
-        length(stmt.conditions) > 0 ? {
-          Condition = merge([
-            for condition in stmt.conditions : {
-              (condition.test) = {
-                (condition.variable) = condition.values
-              }
-            }
-          ]...)
-        } : {}
-      )
-    ]
-  })
+  policy       = data.aws_iam_policy_document.resource_policy[each.key].json
 }
