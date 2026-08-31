@@ -69,15 +69,25 @@ resource "aws_kinesis_resource_policy" "this" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Sid    = "CrossAccountAccess"
-        Effect = "Allow"
-        Principal = {
-          AWS = each.value.principals
-        }
-        Action   = each.value.actions
-        Resource = aws_kinesis_stream.this[each.key].arn
-      }
+      for stmt in each.value.statements : merge(
+        {
+          Sid    = stmt.sid
+          Effect = stmt.effect
+          Principal = {
+            (stmt.principals.type) = length(stmt.principals.identifiers) == 1 ? stmt.principals.identifiers[0] : stmt.principals.identifiers
+          }
+          Action   = stmt.actions
+          Resource = aws_kinesis_stream.this[each.key].arn
+        },
+        length(stmt.conditions) > 0 ? {
+          Condition = {
+            for condition in stmt.conditions :
+            condition.test => {
+              (condition.variable) = length(condition.values) == 1 ? condition.values[0] : condition.values
+            }...
+          }
+        } : {}
+      )
     ]
   })
 }

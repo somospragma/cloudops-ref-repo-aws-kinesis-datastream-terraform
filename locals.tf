@@ -45,8 +45,7 @@ locals {
   # ---------------------------------------------------------------------------
   resource_policies = {
     for key, config in var.resource_policies : key => {
-      principals = config.principals
-      actions    = config.actions
+      statements = config.statements
     } if contains(keys(var.streams_config), key)
   }
 }

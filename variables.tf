@@ -137,15 +137,33 @@ variable "resource_policies" {
   description = <<-EOT
     Mapa de configuración para Resource Policies de Kinesis (Cross-Account Access).
     La clave del mapa debe coincidir con una clave de streams_config.
-    
-    Atributos:
-    - principals: (list) Lista de ARNs de roles/usuarios que pueden acceder al stream
-    - actions: (list) Lista de acciones permitidas. Default: ["kinesis:PutRecord", "kinesis:PutRecords", "kinesis:DescribeStream"]
+
+    Cada entrada define una lista de statements completos, permitiendo principals
+    explícitos (lista de ARNs) o wildcard (*) con condiciones (OrgID, ArnLike, etc.).
+
+    Atributos por statement:
+    - sid:        (string) Identificador del statement
+    - effect:     (string) "Allow" o "Deny"
+    - principals: (object) { type = "AWS"|"Service"|"Federated", identifiers = list(string) }
+    - actions:    (list)   Lista de acciones kinesis:*
+    - conditions: (list)   Condiciones opcionales { test, variable, values }
   EOT
 
   type = map(object({
-    principals = list(string)
-    actions    = optional(list(string), ["kinesis:PutRecord", "kinesis:PutRecords", "kinesis:DescribeStream"])
+    statements = list(object({
+      sid    = string
+      effect = string
+      principals = object({
+        type        = string
+        identifiers = list(string)
+      })
+      actions = list(string)
+      conditions = optional(list(object({
+        test     = string
+        variable = string
+        values   = list(string)
+      })), [])
+    }))
   }))
 
   default = {}
