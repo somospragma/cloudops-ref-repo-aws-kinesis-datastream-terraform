@@ -74,7 +74,7 @@ resource "aws_kinesis_resource_policy" "this" {
           Sid    = stmt.sid
           Effect = stmt.effect
           Principal = {
-            (stmt.principals.type) = length(stmt.principals.identifiers) == 1 ? stmt.principals.identifiers[0] : stmt.principals.identifiers
+            (stmt.principals.type) = stmt.principals.identifiers
           }
           Action   = stmt.actions
           Resource = aws_kinesis_stream.this[each.key].arn
@@ -83,7 +83,7 @@ resource "aws_kinesis_resource_policy" "this" {
           Condition = {
             for condition in stmt.conditions :
             condition.test => {
-              (condition.variable) = length(condition.values) == 1 ? condition.values[0] : condition.values
+              (condition.variable) = condition.values
             }...
           }
         } : {}
